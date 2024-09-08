@@ -50,13 +50,63 @@ app.get("/", (req, res) => {
   res.send("Welcome to WhatsApp backend!");
 });
 
+// Register a new user
+app.post("/register", async (req, res) => {
+  const { name, email, password } = req.body;
+  
+  if (!name || !email || !password) {
+    return res.status(400).send("All fields are required");
+  }
+
+  try {
+    // Check if user exists
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).send("User already exists");
+    }
+
+    // Save new user
+    user = new User({ name, email, password });
+    await user.save();
+    res.status(201).send("User registered successfully");
+  } catch (err) {
+    res.status(500).send("Error registering user");
+  }
+});
+
+// User login
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).send("Email and password are required");
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).send("Invalid credentials");
+    }
+
+    res.status(200).send("Login successful");
+  } catch (err) {
+    res.status(500).send("Error logging in");
+  }
+});
+
+// Send a message
 app.post("/sendMessage", async (req, res) => {
   const { text, sender } = req.body;
-  
+
   if (!text || !sender) {
     return res.status(400).send("Text and sender are required.");
   }
-  
+
   try {
     const newMessage = new Message({ text, sender });
     await newMessage.save();
@@ -66,6 +116,7 @@ app.post("/sendMessage", async (req, res) => {
   }
 });
 
+// Get all messages
 app.get("/getMessages", async (req, res) => {
   try {
     const messages = await Message.find();
