@@ -2,8 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const app = express();
-
+//set view engine 
 app.set("view engine", "ejs");
+//middleware 
 app.use(express.json());
 
 // Connect to MongoDB
